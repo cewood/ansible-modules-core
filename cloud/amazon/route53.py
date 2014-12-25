@@ -239,7 +239,7 @@ def main():
 
     # connect to the route53 endpoint
     try:
-        conn = Route53Connection(**kwargs)
+        conn = Route53Connection(**aws_connect_kwargs)
     except boto.exception.BotoServerError, e:
         module.fail_json(msg = e.error_message)
 

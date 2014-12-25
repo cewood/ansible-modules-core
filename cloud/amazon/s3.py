@@ -312,12 +312,13 @@ def main():
     try:
         if is_fakes3(s3_url):
             fakes3 = urlparse.urlparse(s3_url)
-            from boto.s3.connection import OrdinaryCallingFormat
             s3 = S3Connection(
                 is_secure=False,
                 host=fakes3.hostname,
                 port=fakes3.port,
-                calling_format=OrdinaryCallingFormat())
+                calling_format=OrdinaryCallingFormat(),
+                **aws_connect_kwargs
+            )
         elif is_walrus(s3_url):
             walrus = urlparse.urlparse(s3_url).hostname
             s3 = boto.connect_walrus(walrus, aws_access_key, aws_secret_key)

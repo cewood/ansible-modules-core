@@ -152,7 +152,7 @@ class ElastiCacheManager(object):
     def __init__(self, module, name, engine, cache_engine_version, node_type,
                  num_nodes, cache_port, cache_subnet_group,
                  cache_security_groups, security_group_ids, zone, wait,
-                 hard_modify, aws_access_key, aws_secret_key, region):
+                 hard_modify, region, **aws_connect_kwargs):
         self.module = module
         self.name = name
         self.engine = engine

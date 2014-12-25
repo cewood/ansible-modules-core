@@ -580,6 +580,7 @@ def main():
     state = module.params.get('state')
 
     region, ec2_url, aws_connect_kwargs = get_aws_connection_info(module)
+
     # If we have a region specified, connect to its endpoint.
     if region:
         try:
@@ -591,7 +592,6 @@ def main():
             module.fail_json(msg = str(e))
     else:
         module.fail_json(msg="region must be specified")
->>>>>>> Add support for AWS Security Token Service (temporary credentials) to all AWS cloud modules.
 
     if module.params.get('state') == 'absent':
         vpc_id = module.params.get('vpc_id')
