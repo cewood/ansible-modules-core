@@ -24,7 +24,7 @@ description:
 options:
   command:
     description:
-      - Specifies the action to take.  
+      - Specifies the action to take.
     required: true
     default: null
     aliases: []
@@ -74,18 +74,6 @@ options:
     required: false
     default: null
     aliases: []
-  aws_secret_key:
-    description:
-      - AWS secret key. 
-    required: false
-    default: null
-    aliases: ['ec2_secret_key', 'secret_key']
-  aws_access_key:
-    description:
-      - AWS access key. 
-    required: false
-    default: null
-    aliases: ['ec2_access_key', 'access_key']
   overwrite:
     description:
       - Whether an existing record should be overwritten on create if values do not match
@@ -106,6 +94,7 @@ options:
     version_added: "1.9"
 requirements: [ "boto" ]
 author: Bruce Pennypacker
+extends_documentation_fragment: aws
 '''
 
 # FIXME: the command stuff should have a more state like configuration alias -- MPD
@@ -177,6 +166,7 @@ try:
     import boto
     import boto.ec2
     from boto import route53
+    from boto.route53 import Route53Connection
     from boto.route53.record import ResourceRecordSets
 except ImportError:
     print "failed=True msg='boto required for this module'"
@@ -214,18 +204,15 @@ def main():
     )
     module = AnsibleModule(argument_spec=argument_spec)
 
-    command_in              = module.params.get('command')
-    zone_in                 = module.params.get('zone').lower()
-    ttl_in                  = module.params.get('ttl')
-    record_in               = module.params.get('record').lower()
-    type_in                 = module.params.get('type')
-    value_in                = module.params.get('value')
-    alias_in                = module.params.get('alias')
-    alias_hosted_zone_id_in = module.params.get('alias_hosted_zone_id')
-    retry_interval_in       = module.params.get('retry_interval')
-    private_zone_in         = module.params.get('private_zone')
+    command_in            = module.params.get('command')
+    zone_in               = module.params.get('zone')
+    ttl_in                = module.params.get('ttl')
+    record_in             = module.params.get('record')
+    type_in               = module.params.get('type')
+    value_in              = module.params.get('value')
+    retry_interval_in     = module.params.get('retry_interval')
 
-    region, ec2_url, aws_connect_params = get_aws_connection_info(module)
+    region, ec2_url, aws_connect_kwargs = get_aws_connection_info(module)
 
     value_list = ()
 
@@ -250,9 +237,9 @@ def main():
           elif not alias_hosted_zone_id_in:
               module.fail_json(msg = "parameter 'alias_hosted_zone_id' required for alias create/delete")
 
-    # connect to the route53 endpoint 
+    # connect to the route53 endpoint
     try:
-        conn = boto.route53.Route53Connection(**aws_connect_params)
+        conn = Route53Connection(**kwargs)
     except boto.exception.BotoServerError, e:
         module.fail_json(msg = e.error_message)
 
@@ -272,7 +259,7 @@ def main():
         module.fail_json(msg = errmsg)
 
     record = {}
-    
+
     found_record = False
     sets = conn.get_all_rrsets(zones[zone_in])
     for rset in sets:
