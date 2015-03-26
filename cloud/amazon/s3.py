@@ -309,30 +309,27 @@ def main():
 
     # Look at s3_url and tweak connection settings
     # if connecting to Walrus or fakes3
-    if is_fakes3(s3_url):
-        try:
+    try:
+        if is_fakes3(s3_url):
             fakes3 = urlparse.urlparse(s3_url)
             from boto.s3.connection import OrdinaryCallingFormat
             s3 = S3Connection(
                 is_secure=False,
                 host=fakes3.hostname,
                 port=fakes3.port,
-                calling_format=OrdinaryCallingFormat(),
-                **aws_connect_kwargs
-            )
-        except boto.exception.NoAuthHandlerFound, e:
-            module.fail_json(msg = str(e))
-    elif is_walrus(s3_url):
-        try:
+                calling_format=OrdinaryCallingFormat())
+        elif is_walrus(s3_url):
             walrus = urlparse.urlparse(s3_url).hostname
             s3 = boto.connect_walrus(walrus, aws_access_key, aws_secret_key)
-        except boto.exception.NoAuthHandlerFound, e:
-            module.fail_json(msg = str(e))
-    else:
-        try:
+        else:
             s3 = boto.s3.connect_to_region(location, aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key, is_secure=True, calling_format=OrdinaryCallingFormat())
-        except boto.exception.NoAuthHandlerFound, e:
-            module.fail_json(msg = str(e))
+    except boto.exception.NoAuthHandlerFound, e:
+        module.fail_json(msg='No Authentication Handler found: %s ' % str(e))
+    except Exception, e:
+        module.fail_json(msg='Failed to connect to S3: %s' % str(e))
+
+    if s3 is None: # this should never happen
+        module.fail_json(msg ='Unknown error, failed to create s3 connection, no information from boto.')
 
     # If our mode is a GET operation (download), go through the procedure as appropriate ...
     if mode == 'get':
