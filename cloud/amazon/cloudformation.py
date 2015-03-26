@@ -107,9 +107,9 @@ import time
 try:
     import boto
     import boto.cloudformation.connection
+    HAS_BOTO = True
 except ImportError:
-    print "failed=True msg='boto required for this module'"
-    sys.exit(1)
+    HAS_BOTO = False
 
 
 def boto_exception(err):
@@ -201,6 +201,8 @@ def main():
     module = AnsibleModule(
         argument_spec=argument_spec,
     )
+    if not HAS_BOTO:
+        module.fail_json(msg='boto required for this module')
 
     state = module.params['state']
     stack_name = module.params['stack_name']
